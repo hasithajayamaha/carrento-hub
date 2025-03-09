@@ -43,7 +43,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       fullName: "",
       email: "",
       password: "",
-      role: "Customer", // Fixed: Use string literal instead of UserRole type
+      role: "Customer",
     },
   });
 
@@ -52,7 +52,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
     setError(null);
     
     try {
-      const { error } = await signUp({
+      console.log("Submitting signup form with data:", {
+        email: data.email,
+        role: data.role,
+        fullName: data.fullName
+      });
+      
+      const response = await signUp({
         email: data.email,
         password: data.password,
         userData: {
@@ -61,12 +67,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
         },
       });
 
-      if (error) {
-        console.error("Signup error:", error);
-        setError(error.message);
+      console.log("Signup response:", response);
+
+      if (response.error) {
+        console.error("Signup error:", response.error);
+        setError(response.error.message);
         toast({
           title: "Registration failed",
-          description: error.message,
+          description: response.error.message,
           variant: "destructive",
         });
         return;

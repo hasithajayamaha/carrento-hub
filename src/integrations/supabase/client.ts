@@ -16,36 +16,66 @@ export const signUp = async ({ email, password, userData }: {
     role?: string;
   }
 }) => {
-  // First, create the auth user
-  const authResponse = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: userData
-    }
-  });
+  console.log("SignUp function called with:", { email, userData });
   
-  if (authResponse.error) {
+  try {
+    // First, create the auth user
+    const authResponse = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: userData
+      }
+    });
+    
+    console.log("Auth response:", authResponse);
+    
+    if (authResponse.error) {
+      console.error("Auth error:", authResponse.error);
+      return authResponse;
+    }
+    
+    // If auth user was created successfully, manually create the profile
+    // This ensures the profile is created regardless of trigger success/failure
+    if (authResponse.data?.user?.id) {
+      try {
+        // Create profile entry manually
+        console.log("Creating profile for user:", authResponse.data.user.id);
+        const profileResponse = await supabase.from('profiles').insert({
+          id: authResponse.data.user.id,
+          full_name: userData.full_name || null,
+          role: userData.role || 'Customer'
+        });
+        
+        console.log("Profile creation response:", profileResponse);
+        
+        if (profileResponse.error) {
+          console.error("Profile creation error:", profileResponse.error);
+        }
+        
+        // Also manually create user_role entry to ensure it exists
+        console.log("Creating user_role for user:", authResponse.data.user.id);
+        const roleResponse = await supabase.from('user_roles').insert({
+          user_id: authResponse.data.user.id,
+          role: userData.role || 'Customer'
+        });
+        
+        console.log("Role creation response:", roleResponse);
+        
+        if (roleResponse.error) {
+          console.error("Role creation error:", roleResponse.error);
+        }
+      } catch (error) {
+        console.error("Error in manual profile/role creation:", error);
+        // We continue even if this fails, as the auth user was created
+      }
+    }
+    
     return authResponse;
+  } catch (error) {
+    console.error("Error in signUp function:", error);
+    return { data: null, error: { message: "An unexpected error occurred during signup." } };
   }
-  
-  // If auth user was created successfully but we need to manually create the profile
-  // because of the SQL error with the trigger
-  if (authResponse.data?.user?.id) {
-    try {
-      // Create profile entry manually
-      await supabase.from('profiles').insert({
-        id: authResponse.data.user.id,
-        full_name: userData.full_name || null,
-        role: userData.role || 'Customer'
-      });
-    } catch (error) {
-      console.error("Error creating profile:", error);
-      // We continue even if this fails, as the auth user was created
-    }
-  }
-  
-  return authResponse;
 };
 
 export const signIn = async ({ email, password }: { email: string; password: string }) => {
