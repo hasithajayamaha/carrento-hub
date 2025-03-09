@@ -17,7 +17,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserRole } from "@/types/models";
 
 // Modify the schema to only allow Customer or CarOwner roles
 const formSchema = z.object({
@@ -35,6 +34,7 @@ interface SignupFormProps {
 
 const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -49,6 +49,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
+    setError(null);
+    
     try {
       const { error } = await signUp({
         email: data.email,
@@ -60,7 +62,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       });
 
       if (error) {
-        throw error;
+        console.error("Signup error:", error);
+        setError(error.message);
+        toast({
+          title: "Registration failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
       }
 
       toast({
@@ -72,6 +81,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
         onSuccess();
       }
     } catch (error: any) {
+      console.error("Signup catch error:", error);
+      setError(error.message || "An unexpected error occurred");
       toast({
         title: "Registration failed",
         description: error.message || "There was an error creating your account. Please try again.",
@@ -85,6 +96,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {error && (
+          <div className="p-3 bg-destructive/10 border border-destructive text-sm text-destructive rounded-md">
+            {error}
+          </div>
+        )}
+        
         <FormField
           control={form.control}
           name="fullName"

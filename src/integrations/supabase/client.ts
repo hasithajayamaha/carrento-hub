@@ -16,13 +16,36 @@ export const signUp = async ({ email, password, userData }: {
     role?: string;
   }
 }) => {
-  return supabase.auth.signUp({
+  // First, create the auth user
+  const authResponse = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: userData
     }
   });
+  
+  if (authResponse.error) {
+    return authResponse;
+  }
+  
+  // If auth user was created successfully but we need to manually create the profile
+  // because of the SQL error with the trigger
+  if (authResponse.data?.user?.id) {
+    try {
+      // Create profile entry manually
+      await supabase.from('profiles').insert({
+        id: authResponse.data.user.id,
+        full_name: userData.full_name || null,
+        role: userData.role || 'Customer'
+      });
+    } catch (error) {
+      console.error("Error creating profile:", error);
+      // We continue even if this fails, as the auth user was created
+    }
+  }
+  
+  return authResponse;
 };
 
 export const signIn = async ({ email, password }: { email: string; password: string }) => {
