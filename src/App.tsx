@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import CarsPage from "./pages/CarsPage";
 import CustomerPortal from "./pages/CustomerPortal";
 import NotFound from "./pages/NotFound";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 const queryClient = new QueryClient();
 
