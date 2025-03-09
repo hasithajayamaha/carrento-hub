@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Car, DollarSign, Calendar, Bell } from "lucide-react";
+import { Car, DollarSign, Calendar, Bell, Wrench } from "lucide-react";
 
 const OwnerDashboard: React.FC = () => {
   return (
