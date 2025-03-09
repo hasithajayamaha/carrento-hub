@@ -10,10 +10,12 @@ import {
   SidebarHeader,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/contexts/AuthContext";
 
 const MainSidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { profile, signOut } = useAuth();
   
   const isActive = (path: string) => location.pathname === path;
 
@@ -28,9 +30,9 @@ const MainSidebar: React.FC = () => {
       <SidebarContent className="p-2">
         <div className="space-y-1">
           <Button
-            variant={isActive("/") ? "default" : "ghost"}
+            variant={isActive("/dashboard") ? "default" : "ghost"}
             className="w-full justify-start"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/dashboard")}
           >
             <Home className="mr-2 h-4 w-4" />
             <span>Dashboard</span>
@@ -62,14 +64,21 @@ const MainSidebar: React.FC = () => {
         </div>
       </SidebarContent>
       <SidebarFooter className="p-4 border-t">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-            <span className="text-sm font-medium">JD</span>
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+              <span className="text-sm font-medium">
+                {profile?.full_name ? profile.full_name.charAt(0) : "U"}
+              </span>
+            </div>
+            <div className="text-sm">
+              <p className="font-medium">{profile?.full_name || "User"}</p>
+              <p className="text-muted-foreground">{profile?.role || "Guest"}</p>
+            </div>
           </div>
-          <div className="text-sm">
-            <p className="font-medium">John Doe</p>
-            <p className="text-muted-foreground">Customer</p>
-          </div>
+          <Button variant="outline" size="sm" onClick={() => signOut()}>
+            Sign Out
+          </Button>
         </div>
       </SidebarFooter>
     </Sidebar>
