@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import CarsPage from "./pages/CarsPage";
 import CustomerPortal from "./pages/CustomerPortal";
+import CarOwnerPortal from "./pages/CarOwnerPortal";
 import NotFound from "./pages/NotFound";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -23,6 +24,7 @@ const App = () => (
             <Route path="/" element={<Dashboard />} />
             <Route path="/cars" element={<CarsPage />} />
             <Route path="/customer" element={<CustomerPortal />} />
+            <Route path="/owner" element={<CarOwnerPortal />} />
             {/* In a full application, we would add more routes here */}
             <Route path="*" element={<NotFound />} />
           </Routes>

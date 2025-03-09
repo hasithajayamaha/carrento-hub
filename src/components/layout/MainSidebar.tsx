@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Car, Home, User } from "lucide-react";
+import { Car, Home, User, FileText, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -50,6 +50,14 @@ const MainSidebar: React.FC = () => {
           >
             <User className="mr-2 h-4 w-4" />
             <span>Customer Portal</span>
+          </Button>
+          <Button
+            variant={isActive("/owner") ? "default" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => navigate("/owner")}
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            <span>Car Owner Portal</span>
           </Button>
         </div>
       </SidebarContent>

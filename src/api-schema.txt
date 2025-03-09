@@ -1,0 +1,221 @@
+
+# CarRento API Routes and Supabase Schema
+
+## API Routes
+
+### Car Listing
+POST /api/cars/list
+- Creates a new car listing
+- Protected by authentication
+- Requires car owner role
+- Body: {make, model, year, type, color, description, specifications, availability, photos}
+
+GET /api/cars
+- Returns all cars with optional filtering
+- Public endpoint
+- Query params: status, type, minYear, maxYear, etc.
+
+GET /api/cars/:id
+- Returns details for a specific car
+- Public endpoint
+
+PUT /api/cars/:id
+- Updates an existing car listing
+- Protected by authentication and car ownership
+- Body: {updatedFields}
+
+DELETE /api/cars/:id
+- Soft deletes a car listing
+- Protected by authentication and car ownership
+
+### Maintenance
+POST /api/maintenance/schedule
+- Schedules a new maintenance appointment
+- Protected by authentication
+- Body: {carId, type, description, preferredDate}
+
+GET /api/maintenance/car/:carId
+- Returns maintenance history for a car
+- Protected by authentication and car ownership
+
+### Rental
+GET /api/rentals/owner/:ownerId
+- Returns rental history for a car owner
+- Protected by authentication
+
+### Agreements
+GET /api/agreements
+- Returns agreements for the authenticated user
+- Protected by authentication
+
+POST /api/agreements/sign
+- Signs an agreement
+- Protected by authentication
+- Body: {agreementId}
+
+## Supabase Schema
+
+### Cars Table
+```sql
+CREATE TABLE cars (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_id UUID REFERENCES auth.users(id) NOT NULL,
+  make TEXT NOT NULL,
+  model TEXT NOT NULL,
+  year INTEGER NOT NULL,
+  type TEXT NOT NULL,
+  color TEXT NOT NULL,
+  description TEXT,
+  status TEXT NOT NULL DEFAULT 'New',
+  pricing JSONB NOT NULL, -- {shortTerm: number, longTerm: number}
+  specifications JSONB NOT NULL, -- {seats, doors, transmission, fuelType, fuelEfficiency, features}
+  availability JSONB NOT NULL, -- {startDate, endDate}
+  photos TEXT[] NOT NULL,
+  documents TEXT[],
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- RLS Policies
+ALTER TABLE cars ENABLE ROW LEVEL SECURITY;
+
+-- Anyone can read cars that are Available
+CREATE POLICY "Public can view available cars" 
+ON cars FOR SELECT USING (status = 'Available');
+
+-- Only the owner can see all their cars regardless of status
+CREATE POLICY "Car owners can see their cars" 
+ON cars FOR SELECT USING (owner_id = auth.uid());
+
+-- Only the owner can insert their cars
+CREATE POLICY "Car owners can insert their cars" 
+ON cars FOR INSERT WITH CHECK (owner_id = auth.uid());
+
+-- Only the owner can update their cars
+CREATE POLICY "Car owners can update their cars" 
+ON cars FOR UPDATE USING (owner_id = auth.uid());
+```
+
+### Maintenance Table
+```sql
+CREATE TABLE maintenance (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  car_id UUID REFERENCES cars(id) NOT NULL,
+  type TEXT NOT NULL,
+  description TEXT NOT NULL,
+  cost DECIMAL(10, 2),
+  date TIMESTAMP WITH TIME ZONE NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Scheduled',
+  notes TEXT,
+  performed_by TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- RLS Policies
+ALTER TABLE maintenance ENABLE ROW LEVEL SECURITY;
+
+-- Car owners can see maintenance for their cars
+CREATE POLICY "Car owners can see their maintenance" 
+ON maintenance FOR SELECT USING (
+  car_id IN (SELECT id FROM cars WHERE owner_id = auth.uid())
+);
+
+-- Service staff can see and manage all maintenance
+CREATE POLICY "Service staff can manage maintenance" 
+ON maintenance FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'ServiceCenterStaff' OR role = 'Admin' OR role = 'SuperAdmin')
+);
+```
+
+### Bookings Table
+```sql
+CREATE TABLE bookings (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  car_id UUID REFERENCES cars(id) NOT NULL,
+  customer_id UUID REFERENCES auth.users(id) NOT NULL,
+  rental_period TEXT NOT NULL, -- 'ShortTerm' or 'LongTerm'
+  start_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  end_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  delivery_option TEXT NOT NULL, -- 'SelfPickup' or 'Delivery'
+  delivery_address JSONB, -- { street, city, state, zipCode }
+  delivery_fee DECIMAL(10, 2) DEFAULT 0,
+  deposit DECIMAL(10, 2) NOT NULL,
+  total_price DECIMAL(10, 2) NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Pending',
+  payment_status TEXT NOT NULL DEFAULT 'Pending',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- RLS Policies
+ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+
+-- Customers can see their own bookings
+CREATE POLICY "Customers can see their bookings" 
+ON bookings FOR SELECT USING (customer_id = auth.uid());
+
+-- Car owners can see bookings for their cars
+CREATE POLICY "Car owners can see bookings for their cars" 
+ON bookings FOR SELECT USING (
+  car_id IN (SELECT id FROM cars WHERE owner_id = auth.uid())
+);
+
+-- Admin staff can see and manage all bookings
+CREATE POLICY "Admin staff can manage all bookings" 
+ON bookings FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'Admin' OR role = 'SuperAdmin')
+);
+```
+
+### Agreements Table
+```sql
+CREATE TABLE agreements (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- RLS Policies
+ALTER TABLE agreements ENABLE ROW LEVEL SECURITY;
+
+-- Everyone can read agreements
+CREATE POLICY "Anyone can read agreements" 
+ON agreements FOR SELECT USING (true);
+
+-- Only superadmins can create/update agreements
+CREATE POLICY "Superadmins can manage agreements" 
+ON agreements FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'SuperAdmin')
+);
+```
+
+### User Agreements (Junction Table)
+```sql
+CREATE TABLE user_agreements (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) NOT NULL,
+  agreement_id UUID REFERENCES agreements(id) NOT NULL,
+  signed_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE(user_id, agreement_id)
+);
+
+-- RLS Policies
+ALTER TABLE user_agreements ENABLE ROW LEVEL SECURITY;
+
+-- Users can see their own signed agreements
+CREATE POLICY "Users can see their signed agreements" 
+ON user_agreements FOR SELECT USING (user_id = auth.uid());
+
+-- Users can sign agreements
+CREATE POLICY "Users can sign agreements" 
+ON user_agreements FOR INSERT WITH CHECK (user_id = auth.uid());
+
+-- Admin can see all signed agreements
+CREATE POLICY "Admins can see all signed agreements" 
+ON user_agreements FOR SELECT USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'Admin' OR role = 'SuperAdmin')
+);
+```
