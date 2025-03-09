@@ -19,6 +19,7 @@ import { Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserRole } from "@/types/models";
 
+// Modify the schema to only allow Customer or CarOwner roles
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -42,7 +43,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       fullName: "",
       email: "",
       password: "",
-      role: "Customer" as UserRole,
+      role: "Customer", // Fixed: Use string literal instead of UserRole type
     },
   });
 

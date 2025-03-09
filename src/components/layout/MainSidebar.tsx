@@ -1,7 +1,6 @@
-
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Car, Home, User, FileText, Wrench, LogOut, Login } from "lucide-react";
+import { Car, Home, User, FileText, Wrench, LogOut, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -53,7 +52,6 @@ const MainSidebar: React.FC = () => {
               <span>Browse Cars</span>
             </Button>
             
-            {/* Only show customer portal link to customers, admins and super admins */}
             {hasRole(["Customer", "Admin", "SuperAdmin"]) && (
               <Button
                 variant={isActive("/customer") ? "default" : "ghost"}
@@ -65,7 +63,6 @@ const MainSidebar: React.FC = () => {
               </Button>
             )}
             
-            {/* Only show car owner portal link to car owners, admins and super admins */}
             {hasRole(["CarOwner", "Admin", "SuperAdmin"]) && (
               <Button
                 variant={isActive("/owner") ? "default" : "ghost"}
@@ -76,8 +73,7 @@ const MainSidebar: React.FC = () => {
                 <span>Car Owner Portal</span>
               </Button>
             )}
-
-            {/* Only show service center link to service center staff, admins and super admins */}
+            
             {hasRole(["ServiceCenterStaff", "Admin", "SuperAdmin"]) && (
               <Button
                 variant={isActive("/service") ? "default" : "ghost"}
@@ -96,7 +92,7 @@ const MainSidebar: React.FC = () => {
               className="w-full justify-start"
               onClick={() => navigate("/auth")}
             >
-              <Login className="mr-2 h-4 w-4" />
+              <LogIn className="mr-2 h-4 w-4" />
               <span>Log In / Sign Up</span>
             </Button>
           </div>
@@ -125,7 +121,7 @@ const MainSidebar: React.FC = () => {
             className="w-full"
             onClick={() => navigate("/auth")}
           >
-            <Login className="mr-2 h-4 w-4" /> Log In
+            <LogIn className="mr-2 h-4 w-4" /> Log In
           </Button>
         )}
       </SidebarFooter>
