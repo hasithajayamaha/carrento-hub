@@ -58,16 +58,16 @@ export const signUp = async ({ email, password, userData }: {
         const role = validateUserRole(userData.role || 'Customer');
         console.log("Creating user_role for user:", authResponse.data.user.id, "with role:", role);
         
-        // Use a raw SQL query to ensure proper enum typing
-        const roleResponse = await supabase.rpc('create_user_role', {
+        // Use the database function to properly cast and insert the role
+        const { error: roleError } = await supabase.rpc('create_user_role', {
           p_user_id: authResponse.data.user.id,
           p_role: role
         });
         
-        console.log("Role creation response:", roleResponse);
-        
-        if (roleResponse.error) {
-          console.error("Role creation error:", roleResponse.error);
+        if (roleError) {
+          console.error("Role creation error:", roleError);
+        } else {
+          console.log("Role created successfully");
         }
       } catch (error) {
         console.error("Error in manual profile/role creation:", error);
