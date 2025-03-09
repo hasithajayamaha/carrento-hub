@@ -10,6 +10,7 @@ import CarOwnerPortal from "./pages/CarOwnerPortal";
 import CustomerPortal from "./pages/CustomerPortal";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
+import { SidebarProvider } from "./components/ui/sidebar";
 import "./App.css";
 
 // Create a client
@@ -20,17 +21,19 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/cars" element={<CarsPage />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/owner/*" element={<CarOwnerPortal />} />
-              <Route path="/customer/*" element={<CustomerPortal />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Router>
-          <Toaster />
+          <SidebarProvider>
+            <Router>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/cars" element={<CarsPage />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/owner/*" element={<CarOwnerPortal />} />
+                <Route path="/customer/*" element={<CustomerPortal />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Router>
+            <Toaster />
+          </SidebarProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
