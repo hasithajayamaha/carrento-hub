@@ -1,6 +1,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import { UserRole } from '@/types/models';
 
 const SUPABASE_URL = "https://jqueiogjlyxkmlpgpiwv.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxdWVpb2dqbHl4a21scGdwaXd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE1NjI1ODQsImV4cCI6MjA1NzEzODU4NH0.-laj11vrJnUVLTGd7XmQ_dCsj8GbEalWLqpoZvGHiZQ";
@@ -54,10 +55,13 @@ export const signUp = async ({ email, password, userData }: {
         }
         
         // Also manually create user_role entry to ensure it exists
-        console.log("Creating user_role for user:", authResponse.data.user.id);
+        // We need to ensure the role is one of the valid enum values
+        const role = validateUserRole(userData.role || 'Customer');
+        console.log("Creating user_role for user:", authResponse.data.user.id, "with role:", role);
+        
         const roleResponse = await supabase.from('user_roles').insert({
           user_id: authResponse.data.user.id,
-          role: userData.role || 'Customer'
+          role: role
         });
         
         console.log("Role creation response:", roleResponse);
@@ -77,6 +81,26 @@ export const signUp = async ({ email, password, userData }: {
     return { data: null, error: { message: "An unexpected error occurred during signup." } };
   }
 };
+
+// Helper function to validate and convert string role to UserRole type
+function validateUserRole(role: string): UserRole {
+  const validRoles: UserRole[] = [
+    "SuperAdmin", 
+    "Admin", 
+    "SupportStaff", 
+    "ServiceCenterStaff", 
+    "CarOwner", 
+    "Customer"
+  ];
+  
+  if (validRoles.includes(role as UserRole)) {
+    return role as UserRole;
+  }
+  
+  // Default to Customer if invalid role provided
+  console.warn(`Invalid role "${role}" provided, defaulting to "Customer"`);
+  return "Customer";
+}
 
 export const signIn = async ({ email, password }: { email: string; password: string }) => {
   return supabase.auth.signInWithPassword({

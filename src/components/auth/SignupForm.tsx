@@ -17,13 +17,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { UserRole } from "@/types/models";
 
 // Modify the schema to only allow Customer or CarOwner roles
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-  role: z.enum(["Customer", "CarOwner"]),
+  role: z.enum(["Customer", "CarOwner"] as const),
 });
 
 type FormData = z.infer<typeof formSchema>;
