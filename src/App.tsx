@@ -1,37 +1,40 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Dashboard from "./pages/Dashboard";
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "next-themes";
+import Index from "./pages/Index";
 import CarsPage from "./pages/CarsPage";
-import CustomerPortal from "./pages/CustomerPortal";
+import Dashboard from "./pages/Dashboard";
 import CarOwnerPortal from "./pages/CarOwnerPortal";
+import CustomerPortal from "./pages/CustomerPortal";
 import NotFound from "./pages/NotFound";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { AuthProvider } from "./contexts/AuthContext";
+import "./App.css";
 
+// Create a client
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <SidebarProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/cars" element={<CarsPage />} />
-            <Route path="/customer" element={<CustomerPortal />} />
-            <Route path="/owner" element={<CarOwnerPortal />} />
-            {/* In a full application, we would add more routes here */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </SidebarProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <AuthProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/cars" element={<CarsPage />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/owner/*" element={<CarOwnerPortal />} />
+              <Route path="/customer/*" element={<CustomerPortal />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Router>
+          <Toaster />
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

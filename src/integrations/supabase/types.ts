@@ -9,7 +9,258 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      agreements: {
+        Row: {
+          content: string
+          created_at: string | null
+          description: string
+          id: string
+          title: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          description: string
+          id?: string
+          title: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      bookings: {
+        Row: {
+          car_id: string
+          created_at: string | null
+          customer_id: string
+          delivery_address: Json | null
+          delivery_fee: number | null
+          delivery_option: string
+          deposit: number
+          end_date: string
+          id: string
+          payment_status: string
+          rental_period: string
+          start_date: string
+          status: string
+          total_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          car_id: string
+          created_at?: string | null
+          customer_id: string
+          delivery_address?: Json | null
+          delivery_fee?: number | null
+          delivery_option: string
+          deposit: number
+          end_date: string
+          id?: string
+          payment_status?: string
+          rental_period: string
+          start_date: string
+          status?: string
+          total_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          car_id?: string
+          created_at?: string | null
+          customer_id?: string
+          delivery_address?: Json | null
+          delivery_fee?: number | null
+          delivery_option?: string
+          deposit?: number
+          end_date?: string
+          id?: string
+          payment_status?: string
+          rental_period?: string
+          start_date?: string
+          status?: string
+          total_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_car_id_fkey"
+            columns: ["car_id"]
+            isOneToOne: false
+            referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cars: {
+        Row: {
+          availability: Json
+          color: string
+          created_at: string | null
+          description: string | null
+          documents: string[] | null
+          id: string
+          make: string
+          model: string
+          owner_id: string
+          photos: string[]
+          pricing: Json
+          specifications: Json
+          status: string
+          type: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          availability: Json
+          color: string
+          created_at?: string | null
+          description?: string | null
+          documents?: string[] | null
+          id?: string
+          make: string
+          model: string
+          owner_id: string
+          photos: string[]
+          pricing: Json
+          specifications: Json
+          status?: string
+          type: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          availability?: Json
+          color?: string
+          created_at?: string | null
+          description?: string | null
+          documents?: string[] | null
+          id?: string
+          make?: string
+          model?: string
+          owner_id?: string
+          photos?: string[]
+          pricing?: Json
+          specifications?: Json
+          status?: string
+          type?: string
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
+      maintenance: {
+        Row: {
+          car_id: string
+          cost: number | null
+          created_at: string | null
+          date: string
+          description: string
+          id: string
+          notes: string | null
+          performed_by: string | null
+          status: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          car_id: string
+          cost?: number | null
+          created_at?: string | null
+          date: string
+          description: string
+          id?: string
+          notes?: string | null
+          performed_by?: string | null
+          status?: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          car_id?: string
+          cost?: number | null
+          created_at?: string | null
+          date?: string
+          description?: string
+          id?: string
+          notes?: string | null
+          performed_by?: string | null
+          status?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_car_id_fkey"
+            columns: ["car_id"]
+            isOneToOne: false
+            referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          address: Json | null
+          created_at: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: Json | null
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          role?: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: Json | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_agreements: {
+        Row: {
+          agreement_id: string
+          id: string
+          signed_at: string | null
+          user_id: string
+        }
+        Insert: {
+          agreement_id: string
+          id?: string
+          signed_at?: string | null
+          user_id: string
+        }
+        Update: {
+          agreement_id?: string
+          id?: string
+          signed_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_agreements_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "agreements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
