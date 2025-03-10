@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
@@ -18,20 +19,24 @@ const ServiceDashboard: React.FC = () => {
   const { data: maintenanceStats, isLoading } = useQuery({
     queryKey: ['maintenanceStats'],
     queryFn: async () => {
-      const { count: scheduledCount, error: scheduledError } = await supabase
+      const { data: scheduledData, error: scheduledError } = await supabase
         .from('maintenance')
-        .select('id', { count: 'exact', head: false })
+        .select('id', { count: 'exact' })
         .eq('status', 'Scheduled');
       
-      const { count: inProgressCount, error: inProgressError } = await supabase
+      const { data: inProgressData, error: inProgressError } = await supabase
         .from('maintenance')
-        .select('id', { count: 'exact', head: false })
+        .select('id', { count: 'exact' })
         .eq('status', 'InProgress');
       
-      const { count: completedCount, error: completedError } = await supabase
+      const { data: completedData, error: completedError } = await supabase
         .from('maintenance')
-        .select('id', { count: 'exact', head: false })
+        .select('id', { count: 'exact' })
         .eq('status', 'Completed');
+      
+      const scheduledCount = scheduledData?.length || 0;
+      const inProgressCount = inProgressData?.length || 0;
+      const completedCount = completedData?.length || 0;
       
       const totalRevenue = await supabase
         .from('maintenance')
@@ -55,9 +60,9 @@ const ServiceDashboard: React.FC = () => {
         .order('date', { ascending: true });
       
       return {
-        scheduled: scheduledCount || 0,
-        inProgress: inProgressCount || 0,
-        completed: completedCount || 0,
+        scheduled: scheduledCount,
+        inProgress: inProgressCount,
+        completed: completedCount,
         revenue,
         todayAppointments: todayAppointments.data || []
       };

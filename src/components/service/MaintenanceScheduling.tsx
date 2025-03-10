@@ -284,7 +284,7 @@ const MaintenanceScheduling: React.FC = () => {
                       <SelectContent>
                         {cars?.map((car) => (
                           <SelectItem key={car.id} value={car.id}>
-                            {car.make} {car.model} ({car.year}) - {car.profiles.full_name}
+                            {car.make} {car.model} ({car.year}) - {car.profiles && car.profiles.full_name}
                           </SelectItem>
                         ))}
                       </SelectContent>

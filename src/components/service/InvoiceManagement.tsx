@@ -391,7 +391,7 @@ const InvoiceManagement: React.FC = () => {
                             <span>
                               {maintenance.cars?.make} {maintenance.cars?.model} - {maintenance.type}
                               <span className="block text-xs text-muted-foreground">
-                                Owner: {maintenance.profiles?.full_name}
+                                Owner: {maintenance.profiles && maintenance.profiles.full_name}
                               </span>
                             </span>
                             <span className="font-medium">${maintenance.cost || 0}</span>

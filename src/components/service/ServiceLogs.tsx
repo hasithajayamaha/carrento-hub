@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,7 +41,6 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Form schema for logging service
 const serviceLogFormSchema = z.object({
   carId: z.string({
     required_error: "Please select a car",
@@ -79,7 +77,6 @@ const ServiceLogs: React.FC = () => {
     }
   });
   
-  // Fetch cars
   const { data: cars = [] } = useQuery({
     queryKey: ['serviceCars', searchQuery],
     queryFn: async () => {
@@ -98,7 +95,6 @@ const ServiceLogs: React.FC = () => {
     }
   });
   
-  // Fetch service logs with filter
   const { data: serviceLogs = [], isLoading: loadingLogs } = useQuery({
     queryKey: ['serviceLogs', filterType, serviceTab, searchQuery],
     queryFn: async () => {
@@ -134,7 +130,6 @@ const ServiceLogs: React.FC = () => {
     }
   });
   
-  // Log service mutation using edge function
   const logServiceMutation = useMutation({
     mutationFn: async (values: ServiceLogFormValues) => {
       const serviceData = {
@@ -147,7 +142,6 @@ const ServiceLogs: React.FC = () => {
         performedBy: profile?.id
       };
       
-      // Call the edge function to log service
       const { data, error } = await supabase.functions.invoke('service-logging', {
         method: 'POST',
         body: serviceData
@@ -169,7 +163,6 @@ const ServiceLogs: React.FC = () => {
     }
   });
   
-  // Handle photo upload
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -179,17 +172,14 @@ const ServiceLogs: React.FC = () => {
     
     try {
       for (const file of fileArr) {
-        // Generate a unique file name
         const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
         
-        // Upload to Supabase Storage
         const { data, error } = await supabase.storage
           .from('service-photos')
           .upload(fileName, file);
         
         if (error) throw error;
         
-        // Get public URL
         const { data: urlData } = supabase.storage
           .from('service-photos')
           .getPublicUrl(fileName);
@@ -205,7 +195,6 @@ const ServiceLogs: React.FC = () => {
     }
   };
   
-  // Remove uploaded photo
   const removePhoto = (index: number) => {
     const newPhotos = [...uploadedPhotos];
     newPhotos.splice(index, 1);
@@ -306,7 +295,7 @@ const ServiceLogs: React.FC = () => {
                             <div className="flex items-center mt-1 text-xs text-muted-foreground">
                               <CalendarIcon className="h-3 w-3 mr-1" />
                               <span>Service date: {formatDateTime(log.date)}</span>
-                              {log.profiles?.full_name && (
+                              {log.profiles && (
                                 <>
                                   <span className="mx-2">•</span>
                                   <span>Performed by: {log.profiles.full_name}</span>
@@ -390,7 +379,7 @@ const ServiceLogs: React.FC = () => {
                       <SelectContent>
                         {cars?.map((car) => (
                           <SelectItem key={car.id} value={car.id}>
-                            {car.make} {car.model} ({car.year}) - {car.profiles?.full_name}
+                            {car.make} {car.model} ({car.year}) - {car.profiles && car.profiles.full_name}
                           </SelectItem>
                         ))}
                       </SelectContent>
