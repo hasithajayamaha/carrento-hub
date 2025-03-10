@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
@@ -19,23 +18,20 @@ const ServiceDashboard: React.FC = () => {
   const { data: maintenanceStats, isLoading } = useQuery({
     queryKey: ['maintenanceStats'],
     queryFn: async () => {
-      const scheduled = await supabase
+      const { count: scheduledCount, error: scheduledError } = await supabase
         .from('maintenance')
-        .select('id')
-        .eq('status', 'Scheduled')
-        .count();
+        .select('id', { count: 'exact', head: false })
+        .eq('status', 'Scheduled');
       
-      const inProgress = await supabase
+      const { count: inProgressCount, error: inProgressError } = await supabase
         .from('maintenance')
-        .select('id')
-        .eq('status', 'InProgress')
-        .count();
+        .select('id', { count: 'exact', head: false })
+        .eq('status', 'InProgress');
       
-      const completed = await supabase
+      const { count: completedCount, error: completedError } = await supabase
         .from('maintenance')
-        .select('id')
-        .eq('status', 'Completed')
-        .count();
+        .select('id', { count: 'exact', head: false })
+        .eq('status', 'Completed');
       
       const totalRevenue = await supabase
         .from('maintenance')
@@ -59,9 +55,9 @@ const ServiceDashboard: React.FC = () => {
         .order('date', { ascending: true });
       
       return {
-        scheduled: scheduled.count || 0,
-        inProgress: inProgress.count || 0,
-        completed: completed.count || 0,
+        scheduled: scheduledCount || 0,
+        inProgress: inProgressCount || 0,
+        completed: completedCount || 0,
         revenue,
         todayAppointments: todayAppointments.data || []
       };
@@ -166,7 +162,7 @@ const ServiceDashboard: React.FC = () => {
                       <span>{appointment.type}</span>
                       <span>•</span>
                       <span>{format(new Date(appointment.date), 'h:mm a')}</span>
-                      {appointment.profiles?.full_name && (
+                      {appointment.profiles && (
                         <>
                           <span>•</span>
                           <span>Assigned to: {appointment.profiles.full_name}</span>

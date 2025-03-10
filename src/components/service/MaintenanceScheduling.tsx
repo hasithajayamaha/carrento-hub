@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -215,43 +214,43 @@ const MaintenanceScheduling: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {upcomingMaintenance?.map((maintenance) => (
-                <div key={maintenance.id} className="flex p-4 border rounded-lg">
+              {upcomingMaintenance?.map((maintenanceRecord) => (
+                <div key={maintenanceRecord.id} className="flex p-4 border rounded-lg">
                   <div className="mr-4">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      maintenance.type === 'Regular' ? 'bg-blue-100 text-blue-600' :
-                      maintenance.type === 'Repair' ? 'bg-red-100 text-red-600' :
+                      maintenanceRecord.type === 'Regular' ? 'bg-blue-100 text-blue-600' :
+                      maintenanceRecord.type === 'Repair' ? 'bg-red-100 text-red-600' :
                       'bg-green-100 text-green-600'
                     }`}>
-                      <span className="text-sm font-semibold">{maintenance.type.charAt(0)}</span>
+                      <span className="text-sm font-semibold">{maintenanceRecord.type.charAt(0)}</span>
                     </div>
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium">
-                      {maintenance.cars?.make} {maintenance.cars?.model} ({maintenance.cars?.year})
+                      {maintenanceRecord.cars?.make} {maintenanceRecord.cars?.model} ({maintenanceRecord.cars?.year})
                     </h4>
-                    <p className="text-sm">{maintenance.description}</p>
+                    <p className="text-sm">{maintenanceRecord.description}</p>
                     <div className="flex items-center mt-1 text-xs text-muted-foreground">
                       <CalendarIcon className="h-3 w-3 mr-1" />
-                      <span>{formatDateTime(maintenance.date)}</span>
-                      {maintenance.profiles?.full_name && (
+                      <span>{formatDateTime(maintenanceRecord.date)}</span>
+                      {maintenanceRecord.profiles && (
                         <>
                           <span className="mx-2">•</span>
-                          <span>Assigned to: {maintenance.profiles.full_name}</span>
+                          <span>Staff: {maintenanceRecord.profiles.full_name}</span>
                         </>
                       )}
                     </div>
                   </div>
                   <div className="ml-4 text-right">
                     <div className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
-                      maintenance.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
-                      maintenance.status === 'InProgress' ? 'bg-yellow-100 text-yellow-800' :
+                      maintenanceRecord.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
+                      maintenanceRecord.status === 'InProgress' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-green-100 text-green-800'
                     }`}>
-                      {maintenance.status}
+                      {maintenanceRecord.status}
                     </div>
                     <div className="text-sm font-medium mt-1">
-                      ${maintenance.cost || 0}
+                      ${maintenanceRecord.cost || 0}
                     </div>
                   </div>
                 </div>

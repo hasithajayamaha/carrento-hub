@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +30,6 @@ import { format, addDays } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Search, Plus, FileText, Download, Check, CalendarIcon } from "lucide-react";
 
-// Form schema for invoice creation
 const invoiceFormSchema = z.object({
   maintenanceIds: z.array(z.string()).min(1, {
     message: "Please select at least one maintenance record",
@@ -65,7 +63,6 @@ const InvoiceManagement: React.FC = () => {
     }
   });
   
-  // Fetch completed maintenance that needs to be invoiced
   const { data: completedMaintenance = [] } = useQuery({
     queryKey: ['completedMaintenance'],
     queryFn: async () => {
@@ -85,7 +82,6 @@ const InvoiceManagement: React.FC = () => {
     }
   });
   
-  // Fetch all invoices
   const { data: invoices = [], isLoading: loadingInvoices } = useQuery({
     queryKey: ['invoices', searchQuery],
     queryFn: async () => {
@@ -107,7 +103,6 @@ const InvoiceManagement: React.FC = () => {
       
       if (error) throw error;
       
-      // Group invoices by invoice number
       const groupedInvoices = (data || []).reduce((acc, curr) => {
         const key = curr.invoice_number || '';
         if (!acc[key]) {
@@ -136,12 +131,10 @@ const InvoiceManagement: React.FC = () => {
     }
   });
   
-  // Generate invoice mutation
   const generateInvoiceMutation = useMutation({
     mutationFn: async (values: InvoiceFormValues) => {
       const { maintenanceIds, invoiceDate, dueDate, invoiceNumber, notes } = values;
       
-      // Get maintenance records to invoice
       const { data: maintenanceRecords, error: fetchError } = await supabase
         .from('maintenance')
         .select('id, cost')
@@ -149,7 +142,6 @@ const InvoiceManagement: React.FC = () => {
       
       if (fetchError) throw fetchError;
       
-      // Calculate total invoice amount
       const totalAmount = (maintenanceRecords || []).reduce(
         (sum, record) => sum + (record.cost || 0), 0
       );
@@ -160,17 +152,15 @@ const InvoiceManagement: React.FC = () => {
         maintenanceIds
       };
       
-      // Update all selected maintenance records with invoice information
       const updates = maintenanceIds.map(id => ({
         id,
         invoice_number: invoiceNumber,
         invoice_date: invoiceDate.toISOString(),
         invoice_status: 'Pending',
-        invoice_amount: totalAmount / maintenanceIds.length, // Split amount equally
+        invoice_amount: totalAmount / maintenanceIds.length,
         invoice_details: invoiceDetails
       }));
       
-      // Update maintenance records with invoice information
       for (const update of updates) {
         const { error } = await supabase
           .from('maintenance')
@@ -201,7 +191,6 @@ const InvoiceManagement: React.FC = () => {
     }
   });
   
-  // Mark invoice as paid mutation
   const markAsPaidMutation = useMutation({
     mutationFn: async (invoiceNumber: string) => {
       const { data, error } = await supabase
@@ -252,14 +241,11 @@ const InvoiceManagement: React.FC = () => {
     generateInvoiceMutation.mutate(data);
   };
   
-  // Handle mark as paid
   const handleMarkAsPaid = (invoiceNumber: string) => {
     markAsPaidMutation.mutate(invoiceNumber);
   };
   
-  // Create download URL for the invoice
   const getInvoiceUrl = (invoice: any) => {
-    // In a real app, this would generate a PDF or redirect to an invoice page
     return `#invoice-${invoice.invoiceNumber}`;
   };
   
