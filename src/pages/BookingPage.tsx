@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getCarById } from "@/integrations/supabase/client";
-import { Car } from "@/types/models";
+import { Car, CarType, CarStatus } from "@/types/models";
 import { useToast } from "@/hooks/use-toast";
 import MainLayout from "@/components/layout/MainLayout";
 import BookingForm from "@/components/booking/BookingForm";
@@ -46,21 +46,34 @@ const BookingPage: React.FC = () => {
           return;
         }
         
-        // Convert the data to Car type
+        // Convert the data to Car type with proper type casting
         const carData: Car = {
           id: data.id,
           make: data.make,
           model: data.model,
           year: data.year,
-          type: data.type,
+          type: data.type as CarType, // Cast to CarType enum
           color: data.color,
           image: data.photos[0],
           description: data.description || "",
-          status: data.status,
+          status: data.status as CarStatus, // Cast to CarStatus enum
           ownerId: data.owner_id,
-          pricing: data.pricing,
-          specifications: data.specifications,
-          availability: data.availability
+          pricing: {
+            shortTerm: data.pricing.shortTerm,
+            longTerm: data.pricing.longTerm
+          },
+          specifications: {
+            seats: data.specifications.seats,
+            doors: data.specifications.doors,
+            transmission: data.specifications.transmission as "Automatic" | "Manual",
+            fuelType: data.specifications.fuelType as "Gasoline" | "Diesel" | "Electric" | "Hybrid",
+            fuelEfficiency: data.specifications.fuelEfficiency,
+            features: data.specifications.features
+          },
+          availability: {
+            startDate: data.availability.startDate,
+            endDate: data.availability.endDate
+          }
         };
         
         setCar(carData);

@@ -12,9 +12,8 @@ port = 54322
 [studio]
 port = 54323
 
-[[functions]]
-name = "create-booking"
+[functions.create-booking]
 verify_jwt = true
 
-[functions.import_map]
+[functions.create-booking.import_map]
 imports = {}
