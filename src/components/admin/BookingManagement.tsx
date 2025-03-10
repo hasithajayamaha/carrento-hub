@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -63,40 +62,78 @@ const BookingManagement: React.FC = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const { data, error } = await supabase
+        // First, fetch all bookings
+        const { data: bookingsData, error: bookingsError } = await supabase
           .from("bookings")
           .select(`
             *,
-            cars:car_id (id, make, model, year),
-            profiles:customer_id (id, full_name, email)
+            cars:car_id (id, make, model, year)
           `)
           .order("created_at", { ascending: false });
           
-        if (error) throw error;
+        if (bookingsError) throw bookingsError;
         
-        // Transform data for display
-        const formattedBookings: BookingData[] = data.map(booking => ({
-          id: booking.id,
-          car: {
-            id: booking.cars.id,
-            make: booking.cars.make,
-            model: booking.cars.model,
-            year: booking.cars.year
-          },
-          customer: {
-            id: booking.profiles.id,
-            name: booking.profiles.full_name || "Unknown",
-            email: booking.profiles.email || "Unknown"
-          },
-          startDate: booking.start_date,
-          endDate: booking.end_date,
-          rentalPeriod: booking.rental_period,
-          totalPrice: booking.total_price,
-          status: booking.status,
-          paymentStatus: booking.payment_status,
-          deliveryOption: booking.delivery_option,
-          createdAt: booking.created_at
-        }));
+        // Then, for each booking, get the customer profile
+        const formattedBookings: BookingData[] = await Promise.all(
+          bookingsData.map(async (booking) => {
+            // Get customer profile
+            const { data: customerData, error: customerError } = await supabase
+              .from("profiles")
+              .select("id, full_name, role")
+              .eq("id", booking.customer_id)
+              .single();
+            
+            if (customerError) {
+              console.error("Error fetching customer profile:", customerError);
+              // Provide fallback values if profile fetch fails
+              return {
+                id: booking.id,
+                car: {
+                  id: booking.cars.id,
+                  make: booking.cars.make,
+                  model: booking.cars.model,
+                  year: booking.cars.year
+                },
+                customer: {
+                  id: booking.customer_id,
+                  name: "Unknown Customer",
+                  email: "unknown@email.com"
+                },
+                startDate: booking.start_date,
+                endDate: booking.end_date,
+                rentalPeriod: booking.rental_period,
+                totalPrice: booking.total_price,
+                status: booking.status,
+                paymentStatus: booking.payment_status,
+                deliveryOption: booking.delivery_option,
+                createdAt: booking.created_at
+              };
+            }
+            
+            return {
+              id: booking.id,
+              car: {
+                id: booking.cars.id,
+                make: booking.cars.make,
+                model: booking.cars.model,
+                year: booking.cars.year
+              },
+              customer: {
+                id: customerData.id,
+                name: customerData.full_name || "Unknown",
+                email: "customer@email.com" // We don't store email in profiles, use placeholder
+              },
+              startDate: booking.start_date,
+              endDate: booking.end_date,
+              rentalPeriod: booking.rental_period,
+              totalPrice: booking.total_price,
+              status: booking.status,
+              paymentStatus: booking.payment_status,
+              deliveryOption: booking.delivery_option,
+              createdAt: booking.created_at
+            };
+          })
+        );
         
         setBookings(formattedBookings);
         setFilteredBookings(formattedBookings);

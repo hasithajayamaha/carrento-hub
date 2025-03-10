@@ -18,9 +18,10 @@ const AdminPortal: React.FC = () => {
   // Check if user has admin permissions
   const isAdmin = profile?.role === "Admin" || profile?.role === "SuperAdmin";
   const isSupportStaff = profile?.role === "SupportStaff";
+  const isServiceCenterStaff = profile?.role === "ServiceCenterStaff";
   
-  // Only allow access to admin or support staff
-  const hasAccess = isAdmin || isSupportStaff;
+  // Allow access to admin, support staff, and service center staff
+  const hasAccess = isAdmin || isSupportStaff || isServiceCenterStaff;
   
   if (isLoading) {
     return (
@@ -42,11 +43,14 @@ const AdminPortal: React.FC = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-8">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="cars">Car Listings</TabsTrigger>
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
-            <TabsTrigger value="checklists">Checklists</TabsTrigger>
+            {(isAdmin) && <TabsTrigger value="cars">Car Listings</TabsTrigger>}
+            {(isAdmin || isSupportStaff) && <TabsTrigger value="bookings">Bookings</TabsTrigger>}
+            {(isAdmin || isSupportStaff) && <TabsTrigger value="checklists">Checklists</TabsTrigger>}
             {profile?.role === "SuperAdmin" && (
               <TabsTrigger value="users">User Management</TabsTrigger>
+            )}
+            {(isAdmin || isServiceCenterStaff) && (
+              <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
             )}
           </TabsList>
           
@@ -54,21 +58,38 @@ const AdminPortal: React.FC = () => {
             <AdminDashboard />
           </TabsContent>
           
-          <TabsContent value="cars" className="w-full">
-            <CarApprovalList />
-          </TabsContent>
+          {(isAdmin) && (
+            <TabsContent value="cars" className="w-full">
+              <CarApprovalList />
+            </TabsContent>
+          )}
           
-          <TabsContent value="bookings" className="w-full">
-            <BookingManagement />
-          </TabsContent>
+          {(isAdmin || isSupportStaff) && (
+            <TabsContent value="bookings" className="w-full">
+              <BookingManagement />
+            </TabsContent>
+          )}
           
-          <TabsContent value="checklists" className="w-full">
-            <RentalChecklists />
-          </TabsContent>
+          {(isAdmin || isSupportStaff) && (
+            <TabsContent value="checklists" className="w-full">
+              <RentalChecklists />
+            </TabsContent>
+          )}
           
           {profile?.role === "SuperAdmin" && (
             <TabsContent value="users" className="w-full">
               <UserManagement />
+            </TabsContent>
+          )}
+          
+          {(isAdmin || isServiceCenterStaff) && (
+            <TabsContent value="maintenance" className="w-full">
+              <div className="text-center py-10">
+                <h2 className="text-xl font-medium mb-2">Maintenance Management</h2>
+                <p className="text-muted-foreground">
+                  Maintenance management feature coming soon.
+                </p>
+              </div>
             </TabsContent>
           )}
         </Tabs>

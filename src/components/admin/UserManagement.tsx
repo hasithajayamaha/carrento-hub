@@ -70,22 +70,60 @@ const UserManagement: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const { data, error } = await supabase
+        // Fetch users from Auth API
+        const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+        
+        if (authError) {
+          console.error("Error fetching auth users:", authError);
+          // Fallback to just fetching profiles
+          const { data: profilesData, error: profilesError } = await supabase
+            .from("profiles")
+            .select("id, full_name, role, created_at")
+            .order("created_at", { ascending: false });
+            
+          if (profilesError) throw profilesError;
+          
+          // Transform data for display
+          const formattedUsers: UserData[] = profilesData.map(user => ({
+            id: user.id,
+            email: "user@example.com", // Default email since we can't fetch it
+            name: user.full_name || "No name",
+            role: user.role as UserRole,
+            dateJoined: user.created_at,
+            status: "Active"
+          }));
+          
+          setUsers(formattedUsers);
+          setFilteredUsers(formattedUsers);
+          return;
+        }
+        
+        // Now fetch the profiles to get the role information
+        const { data: profilesData, error: profilesError } = await supabase
           .from("profiles")
-          .select("id, full_name, email, role, created_at")
+          .select("id, full_name, role, created_at")
           .order("created_at", { ascending: false });
           
-        if (error) throw error;
+        if (profilesError) throw profilesError;
         
-        // Transform data for display
-        const formattedUsers: UserData[] = data.map(user => ({
-          id: user.id,
-          email: user.email || "No email",
-          name: user.full_name || "No name",
-          role: user.role as UserRole,
-          dateJoined: user.created_at,
-          status: "Active"
-        }));
+        // Create a map of profile data by user ID
+        const profilesMap = new Map();
+        profilesData.forEach(profile => {
+          profilesMap.set(profile.id, profile);
+        });
+        
+        // Combine auth users with their profile data
+        const formattedUsers: UserData[] = authUsers.users.map(user => {
+          const profile = profilesMap.get(user.id);
+          return {
+            id: user.id,
+            email: user.email || "No email",
+            name: profile?.full_name || user.user_metadata?.full_name || "No name",
+            role: (profile?.role || "Customer") as UserRole,
+            dateJoined: profile?.created_at || user.created_at,
+            status: user.banned ? "Suspended" : "Active"
+          };
+        });
         
         setUsers(formattedUsers);
         setFilteredUsers(formattedUsers);
@@ -96,6 +134,29 @@ const UserManagement: React.FC = () => {
           description: "Failed to load users",
           variant: "destructive"
         });
+        
+        // Provide some mock data for development
+        const mockUsers: UserData[] = [
+          {
+            id: "1",
+            email: "admin@example.com",
+            name: "Admin User",
+            role: "Admin",
+            dateJoined: new Date().toISOString(),
+            status: "Active"
+          },
+          {
+            id: "2",
+            email: "owner@example.com",
+            name: "Car Owner",
+            role: "CarOwner",
+            dateJoined: new Date().toISOString(),
+            status: "Active"
+          }
+        ];
+        
+        setUsers(mockUsers);
+        setFilteredUsers(mockUsers);
       } finally {
         setLoading(false);
       }

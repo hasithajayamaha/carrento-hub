@@ -54,26 +54,34 @@ const CarApprovalList: React.FC = () => {
             status, 
             photos,
             created_at, 
-            owner_id,
-            profiles:owner_id (full_name)
+            owner_id
           `)
           .eq("status", "New")
           .order("created_at", { ascending: false });
           
         if (error) throw error;
         
-        // Transform data for display
-        const carsWithOwners = data.map(car => ({
-          id: car.id,
-          make: car.make,
-          model: car.model,
-          year: car.year,
-          type: car.type as CarType,
-          owner_id: car.owner_id,
-          owner_name: car.profiles?.full_name || "Unknown Owner",
-          status: car.status as CarStatus,
-          photos: car.photos,
-          created_at: car.created_at
+        // For each car, fetch the owner details separately
+        const carsWithOwners = await Promise.all(data.map(async (car) => {
+          // Get owner profile
+          const { data: ownerData, error: ownerError } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", car.owner_id)
+            .single();
+            
+          return {
+            id: car.id,
+            make: car.make,
+            model: car.model,
+            year: car.year,
+            type: car.type as CarType,
+            owner_id: car.owner_id,
+            owner_name: ownerError ? "Unknown Owner" : (ownerData?.full_name || "Unknown Owner"),
+            status: car.status as CarStatus,
+            photos: car.photos,
+            created_at: car.created_at
+          };
         }));
         
         setCars(carsWithOwners);

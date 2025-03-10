@@ -46,7 +46,7 @@ const BookingPage: React.FC = () => {
           return;
         }
         
-        // Convert the data to Car type with proper type casting
+        // Convert the data to Car type with proper type assertions
         const carData: Car = {
           id: data.id,
           make: data.make,
@@ -59,20 +59,24 @@ const BookingPage: React.FC = () => {
           status: data.status as CarStatus, // Cast to CarStatus enum
           ownerId: data.owner_id,
           pricing: {
-            shortTerm: Number(data.pricing.shortTerm),
-            longTerm: Number(data.pricing.longTerm)
+            shortTerm: typeof data.pricing === 'object' ? Number(data.pricing.shortTerm) : 0,
+            longTerm: typeof data.pricing === 'object' ? Number(data.pricing.longTerm) : 0
           },
           specifications: {
-            seats: Number(data.specifications.seats),
-            doors: Number(data.specifications.doors),
-            transmission: data.specifications.transmission as "Automatic" | "Manual",
-            fuelType: data.specifications.fuelType as "Gasoline" | "Diesel" | "Electric" | "Hybrid",
-            fuelEfficiency: String(data.specifications.fuelEfficiency),
-            features: Array.isArray(data.specifications.features) ? data.specifications.features : []
+            seats: typeof data.specifications === 'object' ? Number(data.specifications.seats) : 0,
+            doors: typeof data.specifications === 'object' ? Number(data.specifications.doors) : 0,
+            transmission: typeof data.specifications === 'object' ? 
+              (data.specifications.transmission as "Automatic" | "Manual") : "Automatic",
+            fuelType: typeof data.specifications === 'object' ? 
+              (data.specifications.fuelType as "Gasoline" | "Diesel" | "Electric" | "Hybrid") : "Gasoline",
+            fuelEfficiency: typeof data.specifications === 'object' ? 
+              String(data.specifications.fuelEfficiency) : "",
+            features: typeof data.specifications === 'object' && Array.isArray(data.specifications.features) ? 
+              data.specifications.features : []
           },
           availability: {
-            startDate: String(data.availability.startDate),
-            endDate: String(data.availability.endDate)
+            startDate: typeof data.availability === 'object' ? String(data.availability.startDate) : "",
+            endDate: typeof data.availability === 'object' ? String(data.availability.endDate) : ""
           }
         };
         
