@@ -13,6 +13,7 @@ import CustomerPortal from './pages/CustomerPortal';
 import CarsPage from './pages/CarsPage';
 import BookingPage from './pages/BookingPage';
 import AdminPortal from './pages/AdminPortal';
+import ServiceCenterPortal from './pages/ServiceCenterPortal';
 
 function App() {
   return (
@@ -62,6 +63,16 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["Admin", "SuperAdmin", "SupportStaff"]}>
                 <AdminPortal />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Service Center Portal */}
+          <Route
+            path="/service/*"
+            element={
+              <ProtectedRoute allowedRoles={["ServiceCenterStaff", "Admin", "SuperAdmin"]}>
+                <ServiceCenterPortal />
               </ProtectedRoute>
             }
           />

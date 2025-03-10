@@ -17,3 +17,9 @@ verify_jwt = true
 
 [functions.create-booking.import_map]
 imports = {}
+
+[functions.service-logging]
+verify_jwt = true
+
+[functions.service-logging.import_map]
+imports = {}
