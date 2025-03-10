@@ -54,6 +54,7 @@ const maintenanceFormSchema = z.object({
     message: "Cost must be a positive number",
   }),
   performedBy: z.string().optional(),
+  nextServiceDate: z.date().optional(),
 });
 
 type MaintenanceFormValues = z.infer<typeof maintenanceFormSchema>;
@@ -79,7 +80,7 @@ const MaintenanceScheduling: React.FC = () => {
   });
   
   // Fetch available cars
-  const { data: cars, isLoading: loadingCars } = useQuery({
+  const { data: cars = [], isLoading: loadingCars } = useQuery({
     queryKey: ['availableCars', searchQuery],
     queryFn: async () => {
       const query = supabase
@@ -99,7 +100,7 @@ const MaintenanceScheduling: React.FC = () => {
   });
   
   // Fetch service center staff
-  const { data: staffMembers } = useQuery({
+  const { data: staffMembers = [] } = useQuery({
     queryKey: ['serviceStaff'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -113,7 +114,7 @@ const MaintenanceScheduling: React.FC = () => {
   });
   
   // Fetch upcoming maintenance appointments
-  const { data: upcomingMaintenance, isLoading: loadingMaintenance } = useQuery({
+  const { data: upcomingMaintenance = [], isLoading: loadingMaintenance } = useQuery({
     queryKey: ['upcomingMaintenance'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -139,18 +140,25 @@ const MaintenanceScheduling: React.FC = () => {
       const [hours, minutes] = values.time.split(":");
       dateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10));
       
+      const maintenanceData: any = {
+        car_id: values.carId,
+        type: values.type,
+        description: values.description,
+        date: dateTime.toISOString(),
+        cost: values.estimatedCost,
+        notes: values.notes,
+        performed_by: values.performedBy || null,
+        status: 'Scheduled'
+      };
+      
+      // Add next service date if provided
+      if (values.nextServiceDate) {
+        maintenanceData.next_service_date = values.nextServiceDate.toISOString();
+      }
+      
       const { data, error } = await supabase
         .from('maintenance')
-        .insert({
-          car_id: values.carId,
-          type: values.type,
-          description: values.description,
-          date: dateTime.toISOString(),
-          cost: values.estimatedCost,
-          notes: values.notes,
-          performed_by: values.performedBy || null,
-          status: 'Scheduled'
-        })
+        .insert(maintenanceData)
         .select();
       
       if (error) throw error;
@@ -386,6 +394,40 @@ const MaintenanceScheduling: React.FC = () => {
                     <p className="text-sm text-red-500">{errors.time.message}</p>
                   )}
                 </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Next Service Date (Optional)</Label>
+                <Controller
+                  name="nextServiceDate"
+                  control={control}
+                  render={({ field }) => (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Schedule next service (optional)</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={field.value || undefined}
+                          onSelect={field.onChange}
+                          initialFocus
+                          disabled={(date) => date <= new Date()}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                />
               </div>
               
               <div className="space-y-2">

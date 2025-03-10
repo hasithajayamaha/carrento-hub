@@ -66,7 +66,7 @@ const InvoiceManagement: React.FC = () => {
   });
   
   // Fetch completed maintenance that needs to be invoiced
-  const { data: completedMaintenance } = useQuery({
+  const { data: completedMaintenance = [] } = useQuery({
     queryKey: ['completedMaintenance'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -86,7 +86,7 @@ const InvoiceManagement: React.FC = () => {
   });
   
   // Fetch all invoices
-  const { data: invoices, isLoading: loadingInvoices } = useQuery({
+  const { data: invoices = [], isLoading: loadingInvoices } = useQuery({
     queryKey: ['invoices', searchQuery],
     queryFn: async () => {
       let query = supabase
@@ -108,8 +108,8 @@ const InvoiceManagement: React.FC = () => {
       if (error) throw error;
       
       // Group invoices by invoice number
-      const groupedInvoices = data.reduce((acc, curr) => {
-        const key = curr.invoice_number;
+      const groupedInvoices = (data || []).reduce((acc, curr) => {
+        const key = curr.invoice_number || '';
         if (!acc[key]) {
           acc[key] = {
             invoiceNumber: curr.invoice_number,
@@ -125,7 +125,7 @@ const InvoiceManagement: React.FC = () => {
         acc[key].items.push({
           id: curr.id,
           type: curr.type,
-          car: `${curr.cars?.make} ${curr.cars?.model} (${curr.cars?.year})`,
+          car: `${curr.cars?.make || ''} ${curr.cars?.model || ''} (${curr.cars?.year || ''})`,
           amount: curr.invoice_amount
         });
         
@@ -150,7 +150,7 @@ const InvoiceManagement: React.FC = () => {
       if (fetchError) throw fetchError;
       
       // Calculate total invoice amount
-      const totalAmount = maintenanceRecords.reduce(
+      const totalAmount = (maintenanceRecords || []).reduce(
         (sum, record) => sum + (record.cost || 0), 0
       );
       
@@ -170,13 +170,23 @@ const InvoiceManagement: React.FC = () => {
         invoice_details: invoiceDetails
       }));
       
-      const { data, error } = await supabase
-        .from('maintenance')
-        .upsert(updates)
-        .select();
+      // Update maintenance records with invoice information
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('maintenance')
+          .update({
+            invoice_number: update.invoice_number,
+            invoice_date: update.invoice_date,
+            invoice_status: update.invoice_status,
+            invoice_amount: update.invoice_amount,
+            invoice_details: update.invoice_details
+          })
+          .eq('id', update.id);
+        
+        if (error) throw error;
+      }
       
-      if (error) throw error;
-      return data;
+      return updates;
     },
     onSuccess: () => {
       toast.success("Invoice generated successfully");
@@ -250,7 +260,6 @@ const InvoiceManagement: React.FC = () => {
   // Create download URL for the invoice
   const getInvoiceUrl = (invoice: any) => {
     // In a real app, this would generate a PDF or redirect to an invoice page
-    // For now, we'll just return a dummy URL
     return `#invoice-${invoice.invoiceNumber}`;
   };
   

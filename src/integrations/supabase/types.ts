@@ -175,8 +175,16 @@ export type Database = {
           date: string
           description: string
           id: string
+          invoice_amount: number | null
+          invoice_date: string | null
+          invoice_details: Json | null
+          invoice_number: string | null
+          invoice_status: string | null
+          next_service_date: string | null
           notes: string | null
           performed_by: string | null
+          photos: string[] | null
+          service_center_id: string | null
           status: string
           type: string
           updated_at: string | null
@@ -188,8 +196,16 @@ export type Database = {
           date: string
           description: string
           id?: string
+          invoice_amount?: number | null
+          invoice_date?: string | null
+          invoice_details?: Json | null
+          invoice_number?: string | null
+          invoice_status?: string | null
+          next_service_date?: string | null
           notes?: string | null
           performed_by?: string | null
+          photos?: string[] | null
+          service_center_id?: string | null
           status?: string
           type: string
           updated_at?: string | null
@@ -201,8 +217,16 @@ export type Database = {
           date?: string
           description?: string
           id?: string
+          invoice_amount?: number | null
+          invoice_date?: string | null
+          invoice_details?: Json | null
+          invoice_number?: string | null
+          invoice_status?: string | null
+          next_service_date?: string | null
           notes?: string | null
           performed_by?: string | null
+          photos?: string[] | null
+          service_center_id?: string | null
           status?: string
           type?: string
           updated_at?: string | null
@@ -213,6 +237,13 @@ export type Database = {
             columns: ["car_id"]
             isOneToOne: false
             referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_service_center_id_fkey"
+            columns: ["service_center_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -246,6 +277,51 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      service_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          maintenance_id: string
+          message: string
+          read_at: string | null
+          recipient_id: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          maintenance_id: string
+          message: string
+          read_at?: string | null
+          recipient_id: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          maintenance_id?: string
+          message?: string
+          read_at?: string | null
+          recipient_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_notifications_maintenance_id_fkey"
+            columns: ["maintenance_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_agreements: {
         Row: {
