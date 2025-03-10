@@ -59,24 +59,31 @@ const BookingPage: React.FC = () => {
           status: data.status as CarStatus, // Cast to CarStatus enum
           ownerId: data.owner_id,
           pricing: {
-            shortTerm: typeof data.pricing === 'object' ? Number(data.pricing.shortTerm) : 0,
-            longTerm: typeof data.pricing === 'object' ? Number(data.pricing.longTerm) : 0
+            shortTerm: typeof data.pricing === 'object' && data.pricing !== null ? 
+              Number(data.pricing.shortTerm || 0) : 0,
+            longTerm: typeof data.pricing === 'object' && data.pricing !== null ? 
+              Number(data.pricing.longTerm || 0) : 0
           },
           specifications: {
-            seats: typeof data.specifications === 'object' ? Number(data.specifications.seats) : 0,
-            doors: typeof data.specifications === 'object' ? Number(data.specifications.doors) : 0,
-            transmission: typeof data.specifications === 'object' ? 
-              (data.specifications.transmission as "Automatic" | "Manual") : "Automatic",
-            fuelType: typeof data.specifications === 'object' ? 
-              (data.specifications.fuelType as "Gasoline" | "Diesel" | "Electric" | "Hybrid") : "Gasoline",
-            fuelEfficiency: typeof data.specifications === 'object' ? 
-              String(data.specifications.fuelEfficiency) : "",
-            features: typeof data.specifications === 'object' && Array.isArray(data.specifications.features) ? 
-              data.specifications.features : []
+            seats: typeof data.specifications === 'object' && data.specifications !== null ? 
+              Number(data.specifications.seats || 0) : 0,
+            doors: typeof data.specifications === 'object' && data.specifications !== null ? 
+              Number(data.specifications.doors || 0) : 0,
+            transmission: typeof data.specifications === 'object' && data.specifications !== null ? 
+              (data.specifications.transmission as "Automatic" | "Manual" || "Automatic") : "Automatic",
+            fuelType: typeof data.specifications === 'object' && data.specifications !== null ? 
+              (data.specifications.fuelType as "Gasoline" | "Diesel" | "Electric" | "Hybrid" || "Gasoline") : "Gasoline",
+            fuelEfficiency: typeof data.specifications === 'object' && data.specifications !== null ? 
+              String(data.specifications.fuelEfficiency || "") : "",
+            features: typeof data.specifications === 'object' && data.specifications !== null && 
+              Array.isArray(data.specifications.features) ? 
+                data.specifications.features : []
           },
           availability: {
-            startDate: typeof data.availability === 'object' ? String(data.availability.startDate) : "",
-            endDate: typeof data.availability === 'object' ? String(data.availability.endDate) : ""
+            startDate: typeof data.availability === 'object' && data.availability !== null ? 
+              String(data.availability.startDate || "") : "",
+            endDate: typeof data.availability === 'object' && data.availability !== null ? 
+              String(data.availability.endDate || "") : ""
           }
         };
         

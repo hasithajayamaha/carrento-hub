@@ -84,13 +84,13 @@ const UserManagement: React.FC = () => {
           if (profilesError) throw profilesError;
           
           // Transform data for display
-          const formattedUsers: UserData[] = profilesData.map(user => ({
+          const formattedUsers: UserData[] = (profilesData || []).map(user => ({
             id: user.id,
             email: "user@example.com", // Default email since we can't fetch it
             name: user.full_name || "No name",
-            role: user.role as UserRole,
+            role: (user.role || "Customer") as UserRole,
             dateJoined: user.created_at,
-            status: "Active"
+            status: "Active" as "Active" | "Suspended"
           }));
           
           setUsers(formattedUsers);
@@ -108,9 +108,11 @@ const UserManagement: React.FC = () => {
         
         // Create a map of profile data by user ID
         const profilesMap = new Map();
-        profilesData.forEach(profile => {
-          profilesMap.set(profile.id, profile);
-        });
+        if (profilesData) {
+          profilesData.forEach(profile => {
+            profilesMap.set(profile.id, profile);
+          });
+        }
         
         // Combine auth users with their profile data
         const formattedUsers: UserData[] = authUsers.users.map(user => {
@@ -121,7 +123,7 @@ const UserManagement: React.FC = () => {
             name: profile?.full_name || user.user_metadata?.full_name || "No name",
             role: (profile?.role || "Customer") as UserRole,
             dateJoined: profile?.created_at || user.created_at,
-            status: user.banned ? "Suspended" : "Active"
+            status: user.banned ? "Suspended" : "Active" as "Active" | "Suspended"
           };
         });
         
