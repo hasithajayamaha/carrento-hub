@@ -8,6 +8,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import BookingForm from "@/components/booking/BookingForm";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Json } from "@/integrations/supabase/types";
 
 const BookingPage: React.FC = () => {
   const { carId } = useParams<{ carId: string }>();
@@ -45,8 +46,18 @@ const BookingPage: React.FC = () => {
           navigate("/cars");
           return;
         }
+
+        // Helper function to safely access JSON properties
+        const getJsonValue = <T,>(jsonObj: Json | null | undefined, key: string, defaultValue: T): T => {
+          if (!jsonObj || typeof jsonObj !== 'object' || Array.isArray(jsonObj)) {
+            return defaultValue;
+          }
+          
+          const value = jsonObj[key];
+          return (value !== undefined && value !== null) ? value as unknown as T : defaultValue;
+        };
         
-        // Convert the data to Car type with proper type assertions
+        // Convert the data to Car type with proper type assertions and null checks
         const carData: Car = {
           id: data.id,
           make: data.make,
@@ -54,36 +65,25 @@ const BookingPage: React.FC = () => {
           year: data.year,
           type: data.type as CarType, // Cast to CarType enum
           color: data.color,
-          image: data.photos[0],
+          image: Array.isArray(data.photos) && data.photos.length > 0 ? data.photos[0] : "",
           description: data.description || "",
           status: data.status as CarStatus, // Cast to CarStatus enum
           ownerId: data.owner_id,
           pricing: {
-            shortTerm: typeof data.pricing === 'object' && data.pricing !== null ? 
-              Number(data.pricing.shortTerm || 0) : 0,
-            longTerm: typeof data.pricing === 'object' && data.pricing !== null ? 
-              Number(data.pricing.longTerm || 0) : 0
+            shortTerm: getJsonValue(data.pricing, 'shortTerm', 0),
+            longTerm: getJsonValue(data.pricing, 'longTerm', 0)
           },
           specifications: {
-            seats: typeof data.specifications === 'object' && data.specifications !== null ? 
-              Number(data.specifications.seats || 0) : 0,
-            doors: typeof data.specifications === 'object' && data.specifications !== null ? 
-              Number(data.specifications.doors || 0) : 0,
-            transmission: typeof data.specifications === 'object' && data.specifications !== null ? 
-              (data.specifications.transmission as "Automatic" | "Manual" || "Automatic") : "Automatic",
-            fuelType: typeof data.specifications === 'object' && data.specifications !== null ? 
-              (data.specifications.fuelType as "Gasoline" | "Diesel" | "Electric" | "Hybrid" || "Gasoline") : "Gasoline",
-            fuelEfficiency: typeof data.specifications === 'object' && data.specifications !== null ? 
-              String(data.specifications.fuelEfficiency || "") : "",
-            features: typeof data.specifications === 'object' && data.specifications !== null && 
-              Array.isArray(data.specifications.features) ? 
-                data.specifications.features : []
+            seats: getJsonValue(data.specifications, 'seats', 0),
+            doors: getJsonValue(data.specifications, 'doors', 0),
+            transmission: getJsonValue(data.specifications, 'transmission', "Automatic") as "Automatic" | "Manual",
+            fuelType: getJsonValue(data.specifications, 'fuelType', "Gasoline") as "Gasoline" | "Diesel" | "Electric" | "Hybrid",
+            fuelEfficiency: getJsonValue(data.specifications, 'fuelEfficiency', ""),
+            features: getJsonValue(data.specifications, 'features', [])
           },
           availability: {
-            startDate: typeof data.availability === 'object' && data.availability !== null ? 
-              String(data.availability.startDate || "") : "",
-            endDate: typeof data.availability === 'object' && data.availability !== null ? 
-              String(data.availability.endDate || "") : ""
+            startDate: getJsonValue(data.availability, 'startDate', ""),
+            endDate: getJsonValue(data.availability, 'endDate', "")
           }
         };
         

@@ -28,7 +28,7 @@ interface Checklist {
   customer: string;
   date: string;
   type: "Pre-Rental" | "Post-Rental";
-  status: "Pending" | "Completed";
+  status: "Pending" | "Completed"; // Explicitly defining status type
   items: ChecklistItem[];
   notes: string;
   photos: string[];
@@ -133,7 +133,7 @@ const RentalChecklists: React.FC = () => {
       // Check if all items are checked
       const allChecked = selectedChecklist.items.every(item => item.checked);
       
-      // Update the checklist
+      // Update the checklist - ensure we use a valid Checklist status
       const updatedChecklists = checklists.map(cl => 
         cl.id === selectedChecklist.id 
           ? { 
