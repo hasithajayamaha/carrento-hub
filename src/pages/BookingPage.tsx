@@ -59,20 +59,20 @@ const BookingPage: React.FC = () => {
           status: data.status as CarStatus, // Cast to CarStatus enum
           ownerId: data.owner_id,
           pricing: {
-            shortTerm: data.pricing.shortTerm,
-            longTerm: data.pricing.longTerm
+            shortTerm: Number(data.pricing.shortTerm),
+            longTerm: Number(data.pricing.longTerm)
           },
           specifications: {
-            seats: data.specifications.seats,
-            doors: data.specifications.doors,
+            seats: Number(data.specifications.seats),
+            doors: Number(data.specifications.doors),
             transmission: data.specifications.transmission as "Automatic" | "Manual",
             fuelType: data.specifications.fuelType as "Gasoline" | "Diesel" | "Electric" | "Hybrid",
-            fuelEfficiency: data.specifications.fuelEfficiency,
-            features: data.specifications.features
+            fuelEfficiency: String(data.specifications.fuelEfficiency),
+            features: Array.isArray(data.specifications.features) ? data.specifications.features : []
           },
           availability: {
-            startDate: data.availability.startDate,
-            endDate: data.availability.endDate
+            startDate: String(data.availability.startDate),
+            endDate: String(data.availability.endDate)
           }
         };
         

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -11,6 +12,7 @@ import CarOwnerPortal from './pages/CarOwnerPortal';
 import CustomerPortal from './pages/CustomerPortal';
 import CarsPage from './pages/CarsPage';
 import BookingPage from './pages/BookingPage';
+import AdminPortal from './pages/AdminPortal';
 
 function App() {
   return (
@@ -50,6 +52,16 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["Customer", "CarOwner", "Admin", "SuperAdmin"]}>
                 <BookingPage />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Admin Portal */}
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute allowedRoles={["Admin", "SuperAdmin", "SupportStaff"]}>
+                <AdminPortal />
               </ProtectedRoute>
             }
           />

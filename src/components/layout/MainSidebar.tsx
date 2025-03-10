@@ -1,6 +1,7 @@
+
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Car, Home, User, FileText, Wrench, LogOut, LogIn } from "lucide-react";
+import { Car, Home, User, FileText, Wrench, LogOut, LogIn, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -54,9 +55,9 @@ const MainSidebar: React.FC = () => {
             
             {hasRole(["Customer", "Admin", "SuperAdmin"]) && (
               <Button
-                variant={isActive("/customer") ? "default" : "ghost"}
+                variant={isActive("/customer/dashboard") ? "default" : "ghost"}
                 className="w-full justify-start"
-                onClick={() => navigate("/customer")}
+                onClick={() => navigate("/customer/dashboard")}
               >
                 <User className="mr-2 h-4 w-4" />
                 <span>Customer Portal</span>
@@ -65,12 +66,23 @@ const MainSidebar: React.FC = () => {
             
             {hasRole(["CarOwner", "Admin", "SuperAdmin"]) && (
               <Button
-                variant={isActive("/owner") ? "default" : "ghost"}
+                variant={isActive("/owner/dashboard") ? "default" : "ghost"}
                 className="w-full justify-start"
-                onClick={() => navigate("/owner")}
+                onClick={() => navigate("/owner/dashboard")}
               >
                 <FileText className="mr-2 h-4 w-4" />
                 <span>Car Owner Portal</span>
+              </Button>
+            )}
+            
+            {hasRole(["Admin", "SuperAdmin", "SupportStaff"]) && (
+              <Button
+                variant={isActive("/admin") ? "default" : "ghost"}
+                className="w-full justify-start"
+                onClick={() => navigate("/admin")}
+              >
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                <span>Admin Portal</span>
               </Button>
             )}
             
