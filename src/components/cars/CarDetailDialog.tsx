@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, Dialog, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,15 +15,14 @@ interface CarDetailDialogProps {
   car: Car | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onBookNow: (car: Car, rentalType: "ShortTerm" | "LongTerm", startDate: Date) => void;
 }
 
 const CarDetailDialog: React.FC<CarDetailDialogProps> = ({
   car,
   open,
   onOpenChange,
-  onBookNow,
 }) => {
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     new Date(Date.now() + 86400000) // Tomorrow
   );
@@ -34,7 +34,13 @@ const CarDetailDialog: React.FC<CarDetailDialogProps> = ({
 
   const handleBookNow = () => {
     if (car && selectedDate) {
-      onBookNow(car, rentalType, selectedDate);
+      // Pass the data to the booking page using navigation state
+      navigate(`/booking/${car.id}`, {
+        state: {
+          rentalType,
+          startDate: selectedDate.toISOString()
+        }
+      });
     }
   };
 

@@ -1,66 +1,73 @@
-
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "next-themes";
-import Index from "./pages/Index";
-import AuthPage from "./pages/AuthPage";
-import CarsPage from "./pages/CarsPage";
-import Dashboard from "./pages/Dashboard";
-import CarOwnerPortal from "./pages/CarOwnerPortal";
-import CustomerPortal from "./pages/CustomerPortal";
-import NotFound from "./pages/NotFound";
-import ProtectedRoute from "./components/auth/ProtectedRoute";
-import { AuthProvider } from "./contexts/AuthContext";
-import { SidebarProvider } from "./components/ui/sidebar";
-import "./App.css";
-
-// Create a client
-const queryClient = new QueryClient();
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import { AuthProvider } from './contexts/AuthContext';
+import IndexPage from './pages/IndexPage';
+import AuthPage from './pages/AuthPage';
+import Dashboard from './pages/Dashboard';
+import NotFound from './pages/NotFound';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import CarOwnerPortal from './pages/CarOwnerPortal';
+import CustomerPortal from './pages/CustomerPortal';
+import CarsPage from './pages/CarsPage';
+import BookingPage from './pages/BookingPage';
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <AuthProvider>
-          <SidebarProvider>
-            <Router>
-              <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/auth" element={<AuthPage />} />
-                
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/cars" element={
-                  <ProtectedRoute>
-                    <CarsPage />
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/owner/*" element={
-                  <ProtectedRoute allowedRoles={["CarOwner", "Admin", "SuperAdmin"]}>
-                    <CarOwnerPortal />
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/customer/*" element={
-                  <ProtectedRoute allowedRoles={["Customer", "Admin", "SuperAdmin"]}>
-                    <CustomerPortal />
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Router>
-            <Toaster />
-          </SidebarProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <Toaster />
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<IndexPage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          
+          {/* Customer Routes */}
+          <Route
+            path="/customer/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["Customer", "CarOwner", "Admin", "SuperAdmin"]}>
+                <CustomerPortal />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Car Owner Routes */}
+          <Route
+            path="/owner/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["CarOwner", "Admin", "SuperAdmin"]}>
+                <CarOwnerPortal />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Car Listings */}
+          <Route path="/cars" element={<CarsPage />} />
+          
+          {/* Booking Flow */}
+          <Route
+            path="/booking/:carId"
+            element={
+              <ProtectedRoute allowedRoles={["Customer", "CarOwner", "Admin", "SuperAdmin"]}>
+                <BookingPage />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Admin Dashboard */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["Admin", "SuperAdmin"]}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

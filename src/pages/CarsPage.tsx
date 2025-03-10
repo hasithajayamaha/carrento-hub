@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Search } from "lucide-react";
@@ -115,17 +114,6 @@ const CarsPage: React.FC = () => {
     });
   };
 
-  const handleBookNow = (car: Car, rentalType: "ShortTerm" | "LongTerm", startDate: Date) => {
-    // In a real app, this would navigate to a booking flow or open a booking modal
-    toast({
-      title: "Booking initiated",
-      description: `You're booking a ${car.make} ${car.model} for ${
-        rentalType === "ShortTerm" ? "short-term" : "long-term"
-      } rental starting on ${startDate.toLocaleDateString()}.`,
-    });
-    setDetailDialogOpen(false);
-  };
-
   return (
     <MainLayout>
       <div className="mb-6">
@@ -187,7 +175,6 @@ const CarsPage: React.FC = () => {
         car={selectedCar}
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
-        onBookNow={handleBookNow}
       />
     </MainLayout>
   );

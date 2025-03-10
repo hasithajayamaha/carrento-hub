@@ -1,1 +1,20 @@
+
 project_id = "jqueiogjlyxkmlpgpiwv"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+
+[db]
+port = 54322
+
+[studio]
+port = 54323
+
+[[functions]]
+name = "create-booking"
+verify_jwt = true
+
+[functions.import_map]
+imports = {}

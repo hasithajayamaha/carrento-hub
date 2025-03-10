@@ -1,52 +1,25 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Car, Info, AlertCircle, Calendar } from "lucide-react";
+import { Car, Info, AlertCircle, Calendar, FileText, ShieldAlert } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { getUserBookings } from "@/integrations/supabase/booking";
+import IncidentReportForm from "@/components/booking/IncidentReportForm";
 
 const CustomerPortal: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [activeBookings, setActiveBookings] = useState<any[]>([]);
+  const [pastBookings, setPastBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [reportingIncident, setReportingIncident] = useState<string | null>(null);
 
   // In a real application, these would be fetched from an API
-  const activeBookings = [
-    {
-      id: "b1",
-      carName: "Tesla Model 3",
-      startDate: "2023-11-15",
-      endDate: "2024-02-15",
-      status: "Active",
-      rentalType: "LongTerm",
-      totalPrice: 4500,
-    },
-    {
-      id: "b2",
-      carName: "Honda Civic",
-      startDate: "2023-12-01",
-      endDate: "2023-12-30",
-      status: "Upcoming",
-      rentalType: "ShortTerm",
-      totalPrice: 1200,
-    },
-  ];
-
-  const pastBookings = [
-    {
-      id: "b3",
-      carName: "Toyota Camry",
-      startDate: "2023-06-01",
-      endDate: "2023-09-01",
-      status: "Completed",
-      rentalType: "LongTerm",
-      totalPrice: 3600,
-    },
-  ];
-
-  // Recent notifications
   const notifications = [
     {
       id: "n1",
@@ -71,6 +44,59 @@ const CustomerPortal: React.FC = () => {
     },
   ];
 
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const { data, error } = await getUserBookings();
+        
+        if (error) {
+          console.error("Error fetching bookings:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load your bookings",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        if (data) {
+          // Sort bookings into active/upcoming and past
+          const active: any[] = [];
+          const past: any[] = [];
+          
+          data.forEach((booking: any) => {
+            const formattedBooking = {
+              id: booking.id,
+              carName: `${booking.cars.make} ${booking.cars.model}`,
+              startDate: booking.start_date,
+              endDate: booking.end_date,
+              status: booking.status,
+              rentalType: booking.rental_period,
+              totalPrice: booking.total_price,
+              incidentReported: booking.incident_reported || false,
+              car: booking.cars
+            };
+            
+            if (['Pending', 'Approved', 'Active'].includes(booking.status)) {
+              active.push(formattedBooking);
+            } else {
+              past.push(formattedBooking);
+            }
+          });
+          
+          setActiveBookings(active);
+          setPastBookings(past);
+        }
+      } catch (error) {
+        console.error("Error in fetchBookings:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchBookings();
+  }, [toast]);
+
   const handleViewBookingDetails = (bookingId: string) => {
     toast({
       title: "Viewing booking details",
@@ -80,11 +106,27 @@ const CustomerPortal: React.FC = () => {
   };
 
   const handleReportIssue = (bookingId: string) => {
+    setReportingIncident(bookingId);
+  };
+
+  const handleIncidentReportSuccess = () => {
+    setReportingIncident(null);
+    
+    // Refresh bookings to show updated incident status
     toast({
-      title: "Report an issue",
-      description: "Issue reporting form would open here",
+      title: "Incident Report Submitted",
+      description: "Your incident report has been submitted successfully and is under review.",
     });
-    // In a real app, this would open a modal or navigate to an issue form
+    
+    // In a real app, we would refresh the bookings data here
+    // For this demo, we'll manually update the relevant booking
+    setActiveBookings(prevBookings => 
+      prevBookings.map(booking => 
+        booking.id === reportingIncident 
+          ? { ...booking, incidentReported: true } 
+          : booking
+      )
+    );
   };
 
   const handleExtendBooking = (bookingId: string) => {
@@ -135,7 +177,7 @@ const CustomerPortal: React.FC = () => {
             <CardDescription>Scheduled for the future</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{activeBookings.filter(b => b.status === "Upcoming").length}</div>
+            <div className="text-3xl font-bold">{activeBookings.filter(b => b.status === "Approved" || b.status === "Pending").length}</div>
           </CardContent>
           <CardFooter>
             <Button variant="ghost" size="sm" onClick={() => {}}>
@@ -172,7 +214,13 @@ const CustomerPortal: React.FC = () => {
         <TabsContent value="bookings" className="space-y-6">
           <div>
             <h3 className="text-lg font-medium mb-3">Active & Upcoming Bookings</h3>
-            {activeBookings.length > 0 ? (
+            {loading ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-muted-foreground">Loading your bookings...</p>
+                </CardContent>
+              </Card>
+            ) : activeBookings.length > 0 ? (
               <div className="space-y-4">
                 {activeBookings.map((booking) => (
                   <Card key={booking.id}>
@@ -191,6 +239,16 @@ const CustomerPortal: React.FC = () => {
                             <span>{booking.status}</span>
                             <span className="mx-2">•</span>
                             <span>{booking.rentalType === "LongTerm" ? "Long-term" : "Short-term"}</span>
+                            
+                            {booking.incidentReported && (
+                              <>
+                                <span className="mx-2">•</span>
+                                <span className="text-amber-500 flex items-center">
+                                  <ShieldAlert className="h-3 w-3 mr-1" />
+                                  Incident Reported
+                                </span>
+                              </>
+                            )}
                           </div>
                         </div>
                         <div className="flex flex-col items-start md:items-end">
@@ -199,9 +257,9 @@ const CustomerPortal: React.FC = () => {
                             <Button size="sm" onClick={() => handleViewBookingDetails(booking.id)}>
                               <Info className="h-4 w-4 mr-1" /> Details
                             </Button>
-                            {booking.status === "Active" && (
+                            {booking.status === "Active" && !booking.incidentReported && (
                               <Button size="sm" variant="outline" onClick={() => handleReportIssue(booking.id)}>
-                                Report Issue
+                                <FileText className="h-4 w-4 mr-1" /> Report Issue
                               </Button>
                             )}
                             {booking.status === "Active" && (
@@ -231,7 +289,13 @@ const CustomerPortal: React.FC = () => {
 
           <div>
             <h3 className="text-lg font-medium mb-3">Past Bookings</h3>
-            {pastBookings.length > 0 ? (
+            {loading ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-muted-foreground">Loading your bookings...</p>
+                </CardContent>
+              </Card>
+            ) : pastBookings.length > 0 ? (
               <div className="space-y-4">
                 {pastBookings.map((booking) => (
                   <Card key={booking.id}>
@@ -248,6 +312,16 @@ const CustomerPortal: React.FC = () => {
                             <span>{booking.status}</span>
                             <span className="mx-2">•</span>
                             <span>{booking.rentalType === "LongTerm" ? "Long-term" : "Short-term"}</span>
+                            
+                            {booking.incidentReported && (
+                              <>
+                                <span className="mx-2">•</span>
+                                <span className="text-amber-500 flex items-center">
+                                  <ShieldAlert className="h-3 w-3 mr-1" />
+                                  Incident Reported
+                                </span>
+                              </>
+                            )}
                           </div>
                         </div>
                         <div className="flex flex-col items-start md:items-end">
@@ -256,7 +330,7 @@ const CustomerPortal: React.FC = () => {
                             <Button size="sm" onClick={() => handleViewBookingDetails(booking.id)}>
                               <Info className="h-4 w-4 mr-1" /> Details
                             </Button>
-                            <Button size="sm" variant="outline">
+                            <Button size="sm" variant="outline" onClick={() => navigate(`/cars`)}>
                               Book Again
                             </Button>
                           </div>
@@ -382,6 +456,27 @@ const CustomerPortal: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Incident Report Dialog */}
+      <Dialog 
+        open={!!reportingIncident} 
+        onOpenChange={(open) => {
+          if (!open) setReportingIncident(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Report an Incident</DialogTitle>
+          </DialogHeader>
+          {reportingIncident && (
+            <IncidentReportForm 
+              bookingId={reportingIncident}
+              onSuccess={handleIncidentReportSuccess}
+              onCancel={() => setReportingIncident(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };

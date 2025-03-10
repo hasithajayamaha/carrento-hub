@@ -44,6 +44,11 @@ export type Database = {
           deposit: number
           end_date: string
           id: string
+          incident_details: string | null
+          incident_photos: string[] | null
+          incident_reported: boolean | null
+          incident_status: string | null
+          incident_timestamp: string | null
           payment_status: string
           rental_period: string
           start_date: string
@@ -61,6 +66,11 @@ export type Database = {
           deposit: number
           end_date: string
           id?: string
+          incident_details?: string | null
+          incident_photos?: string[] | null
+          incident_reported?: boolean | null
+          incident_status?: string | null
+          incident_timestamp?: string | null
           payment_status?: string
           rental_period: string
           start_date: string
@@ -78,6 +88,11 @@ export type Database = {
           deposit?: number
           end_date?: string
           id?: string
+          incident_details?: string | null
+          incident_photos?: string[] | null
+          incident_reported?: boolean | null
+          incident_status?: string | null
+          incident_timestamp?: string | null
           payment_status?: string
           rental_period?: string
           start_date?: string
@@ -293,6 +308,14 @@ export type Database = {
           p_role: string
         }
         Returns: undefined
+      }
+      get_delivery_fee: {
+        Args: {
+          pickup_location: string
+          delivery_location: string
+          delivery_time: string
+        }
+        Returns: number
       }
       has_role: {
         Args: {
