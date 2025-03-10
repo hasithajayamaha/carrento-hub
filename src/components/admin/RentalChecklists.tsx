@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -138,7 +137,7 @@ const RentalChecklists: React.FC = () => {
         cl.id === selectedChecklist.id 
           ? { 
               ...selectedChecklist, 
-              status: allChecked ? "Completed" : "Pending" 
+              status: allChecked ? "Completed" as const : "Pending" as const 
             } 
           : cl
       );
